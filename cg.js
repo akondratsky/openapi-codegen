@@ -16,5 +16,5 @@ if (up.protocol && up.protocol.startsWith('http')) {
       console.error(err.message);
     });
 } else {
-  main(fs.readFileSync(defName,'utf8'));
+  main(fs.readFileSync(defName, 'utf8'));
 }

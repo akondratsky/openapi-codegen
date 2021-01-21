@@ -18,13 +18,13 @@ export const consoleOutput = (error, stdout, stderr) => {
 };
 
 
-const generateCommand = `node cg \
+const generateCommand = `node --inspect cg \
 --verbose \
 --flat \
 --perApi \
 --perPath \
 --output ${here('codegen_generated')} \
-typescript-axios ${here('api.yaml')}
+csharp-dotnet2 ${here('api.yaml')}
 `;
 
 

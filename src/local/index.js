@@ -6,10 +6,25 @@ import rimraf from 'rimraf-promise';
 import Hogan from 'hogan.js';
 import { circularClone as clone } from 'reftools/lib/clone.js'; // must preserve functios
 
-import adaptor from '../../adaptor.js';
+import adaptor from '../adaptor/index.js';
 import lambdas from '../../lambdas.js';
 import { resolveTemplatesPath } from './resolveTemplatesPath.js';
 
+
+const output = (model) => {
+  console.log(`
+    
+  We are generating THE MODEL. Look here:
+
+`);
+  console.dir(model, {
+    depth: 10
+  });
+  console.log(`
+
+
+`);
+};
 
 function main(o, config, configName, callback) {
   const outputDir = config.outputDir || './out/';
@@ -46,6 +61,10 @@ function main(o, config, configName, callback) {
       }
       actions.push(tx);
     }
+
+    debugger;
+  
+    output(model);
 
     const subDir = (config.defaults.flat ? '' : configName);
 

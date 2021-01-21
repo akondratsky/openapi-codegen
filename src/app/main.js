@@ -5,11 +5,12 @@ import { argv } from './args.js';
 import { despatch } from './despatch.js';
 
 
-let finish = remoteConfig ? finishRemote : finishLocal;
+const finish = remoteConfig ? finishRemote : finishLocal;
 
 export const main = (s) => {
-  let o = yaml.parse(s, { prettyErrors: true });
-  if (argv.verbose) console.log('Loaded definition '+defName);
+  debugger;
+  const o = yaml.parse(s, { prettyErrors: true });
+  if (argv.verbose) console.log('Loaded definition ' + defName);
 
   if (o && o.openapi) {
     console.log('main() -> despatching');

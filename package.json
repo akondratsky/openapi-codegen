@@ -9,13 +9,10 @@
   "scripts": {
     "start": "node ./__tests__/codegen.js",
     "lint": "npx eslint *.js test/*.js lib/",
-    "test": "npx mocha --delay"
+    "test": "npx mocha --delay",
+    "debug": "node --inspect-brk cg --verbose --flat --perApi --perPath --output D:\\git\\openapi-codegen\\__tests__\\codegen_generated csharp-dotnet2 D:\\git\\openapi-codegen\\__tests__\\api.yaml"
   },
   "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Mermade/openapi-codegen.git"
-  },
   "keywords": [
     "openapi",
     "swagger",
@@ -24,10 +21,6 @@
   ],
   "author": "Mike Ralphson",
   "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/Mermade/openapi-codegen/issues"
-  },
-  "homepage": "https://github.com/Mermade/openapi-codegen#readme",
   "dependencies": {
     "adm-zip": "^0.5.1",
     "case": "^1.5.4",
