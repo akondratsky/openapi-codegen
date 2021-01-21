@@ -1,11 +1,11 @@
-const remote = require('./remote.js');
+import yargs from 'yargs';
 
 async function list(provider, filter) {
-  process.exitCode = await remote.list(provider, filter);
-  process.exit();
+    process.exitCode = await remote.list(provider, filter);
+    process.exit();
 }
 
-const argv = require('yargs')
+export const argv = yargs
     .usage('cg [options] {[path]configName} {openapi-definition}')
     .boolean('debug')
     .alias('d','debug')
@@ -41,8 +41,4 @@ const argv = require('yargs')
 
 if (argv.list) {
     list(argv.list, argv.filter);
-}
-
-module.exports = {
-  argv
 }

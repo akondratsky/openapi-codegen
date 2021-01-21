@@ -20,8 +20,11 @@ export const consoleOutput = (error, stdout, stderr) => {
 
 const generateCommand = `node cg \
 --verbose \
+--flat \
+--perApi \
+--perPath \
 --output ${here('codegen_generated')} \
-typescript-node ${here('api.yaml')}
+typescript-axios ${here('api.yaml')}
 `;
 
 
