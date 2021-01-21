@@ -7,9 +7,11 @@
     "cg": "./cg.js"
   },
   "scripts": {
+    "start": "node ./__tests__/codegen.js",
     "lint": "npx eslint *.js test/*.js lib/",
     "test": "npx mocha --delay"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mermade/openapi-codegen.git"

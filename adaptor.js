@@ -1,21 +1,23 @@
 // @ts-check
 'use strict';
 
-const util = require('util');
-const url = require('url');
+import util from 'util';
+import url from 'url';
 
-const yaml = require('yaml');
-const uuidv4 = require('uuid').v4;
-const safeJson = require('fast-safe-stringify');
-const Case = require('case');
-const stools = require('swagger-tools');
-const sampler = require('openapi-sampler');
-const deref = require('reftools/lib/dereference.js').dereference;
-const clone = require('reftools/lib/clone.js').circularClone;
-const walkSchema = require('oas-schema-walker').walkSchema;
-const wsGetState = require('oas-schema-walker').getDefaultState;
-const validator = require('oas-validator').validateInner;
-const downconverter = require('./lib/orange/downconvert.js');
+import yaml from 'yaml';
+import { v4 as uuidv4} from 'uuid';
+import safeJson from 'fast-safe-stringify';
+import Case from 'case';
+import stools from 'swagger-tools';
+import sampler from 'openapi-sampler';
+import { dereference as deref } from 'reftools/lib/dereference.js';
+import { circularClone as clone } from 'reftools/lib/clone.js';
+import { walkSchema as walkSchema } from 'oas-schema-walker';
+import { getDefaultState as wsGetState } from 'oas-schema-walker';
+import { validateInner as validator } from 'oas-validator';
+import downconverter from './lib/orange/downconvert.js';
+
+const generatorVersion = '6.6.6';
 
 const schemaProperties = [
     'format',
@@ -734,7 +736,7 @@ function getPrime(api,defaults) {
     prime.version = api.info.version;
     prime.title = api.info.title;
     prime.swaggerVersion = '2.0';
-    prime.generatorVersion = require('./package.json').version;
+    prime.generatorVersion = generatorVersion;
     prime.swaggerCodegenVersion = 'openapi-codegen-v'+prime.generatorVersion;
     prime.appDescription = api.info.description||'No description';
     prime.projectDescription = prime.appDescription;
@@ -1063,7 +1065,7 @@ function transform(api, defaults, callback) {
     return obj;
 }
 
-module.exports = {
+export default {
     getBase : getBase,
     getPrime : getPrime,
     transform : transform

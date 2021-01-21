@@ -1,0 +1,136 @@
+openapi: '3.0.2'
+info:
+  title: Starway APIs
+  version: '1.0'
+servers:
+  - url: http://localhost:4000
+tags:
+  - name: Nodes
+    description: CRUD operations with nodes
+  - name: Collections
+    description: CRUD for collections
+  - name: Tags
+    description: CRUD for tags
+
+
+components:
+  schemas:
+    UUID:
+      type: string
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$
+    NodeType:
+      type: string
+      enum:
+        - QUESTION_NODE
+    Node:
+      title: Node
+      description: Single node of knowledge
+      required:
+        - "id"
+        - "question"
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        nodeType:
+          allOf:
+            - $ref: '#/components/schemas/NodeType'
+        question:
+          type: string
+        answer:
+          type: string
+    Nodes:
+      description: Array of nodes
+      type: array
+      items:
+        $ref: '#/components/schemas/Node'
+    SearchNodesParams:
+      description: Object describes opportunities in searching nodes
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+    Collection:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        name:
+          type: string
+    Collections:
+      type: array
+      items:
+        $ref: '#/components/schemas/Collection'
+
+paths:
+  /nodes:
+    summary: CRUD operations for nodes.
+    description: Pay your attention that we are using POST instead of GET by the reason of high-weighted request bodies.
+    get:
+      tags:
+        - Nodes
+      summary: Get single node
+      description: Since searching is too diffucult for GET request, we can use it to get single nodes by ID.
+      operationId: getNodeById
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        200:
+          description: Node was found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+    post:
+      tags:
+        - Nodes
+      summary: Search nodes
+      description: We assume there are lot of tags which can't fit GET query, all of them are placed in request body.
+      operationId: searchNodes
+      requestBody:
+        description: Optional
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchNodesParams'
+      responses:
+        '200':
+          description: Search successfully done
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Nodes'
+    put:
+      tags:
+        - Nodes
+      description: Create nodes
+      responses:
+        '200':
+          description: OK
+    patch:
+      tags:
+        - Nodes
+      description: Update nodes
+      responses:
+        '200':
+          description: OK
+  /collections:
+    summary: CRUD for collections
+    description: POST for search.
+    get:
+      tags:
+        - Collections
+      summary: Get single collection
+      description: description is absent
+      operationId: getAllCollections
+      responses:
+        200:
+          description: Collections returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collections'

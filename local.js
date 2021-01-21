@@ -1,17 +1,14 @@
-// @ts-check
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
 
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
+import mkdirp from 'mkdirp';
+import rimraf from 'rimraf';
+import Hogan from 'hogan.js';
+import { circularClone as clone } from 'reftools/lib/clone.js'; // must preserve functios
 
-const mkdirp = require('mkdirp');
-const rimraf = require('rimraf');
-const Hogan = require('hogan.js');
-const clone = require('reftools/lib/clone.js').circularClone; // must preserve functions
-
-const adaptor = require('./adaptor.js');
-const lambdas = require('./lambdas.js');
+import adaptor from './adaptor.js';
+import lambdas from './lambdas.js';
 
 // allows other backends, such as a stream writer for .tar.gz files
 let ff = {
@@ -26,7 +23,7 @@ function tpl(config, ...segments) {
         segments.splice(0,1);
         return path.join(config.templateDir, ...segments);
     }
-    return path.join(__dirname, 'templates', ...segments)
+    return path.resolve('templates', ...segments)
 }
 
 function main(o, config, configName, callback) {
@@ -181,7 +178,7 @@ function main(o, config, configName, callback) {
     });
 }
 
-module.exports = {
+export default {
     fileFunctions: ff,
     main : main
 };

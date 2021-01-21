@@ -1,30 +1,28 @@
-#!/usr/bin/env node
-// @ts-check
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
+import util from 'util';
 
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
-const util = require('util');
+import yaml from 'yaml';
+import fetch from 'node-fetch';
+import co from 'co';
+import swagger2openapi from 'swagger2openapi';
+import stools from 'swagger-tools';
+import mkdirp from 'mkdirp';
+import rimraf from 'rimraf';
+import admzip from 'adm-zip';
 
-const yaml = require('yaml');
-const fetch = require('node-fetch');
-const co = require('co');
-const swagger2openapi = require('swagger2openapi');
-const stools = require('swagger-tools');
-const mkdirp = require('mkdirp');
-const rimraf = require('rimraf');
-const admzip = require('adm-zip');
+import processor from './local.js';
+import remote from './remote.js';
 
-const processor = require('./local.js');
-const remote = require('./remote.js');
+import yargs from 'yargs';
 
 async function list(provider, filter) {
     process.exitCode = await remote.list(provider, filter);
     process.exit();
 }
 
-var argv = require('yargs')
+var argv = yargs
     .usage('cg [options] {[path]configName} {openapi-definition}')
     .boolean('debug')
     .alias('d','debug')
@@ -69,7 +67,7 @@ let configPath = path.dirname(configStr);
 if ((configPath === '.') && (!configStr.startsWith('.'))) {
   configPath = '';
 }
-if (!configPath) configPath = path.resolve(__dirname,'configs');
+if (!configPath) configPath = path.resolve('configs');
 let configFile = path.join(configPath,configName);
 if (path.extname(configFile)) {
   configName = configName.replace(path.extname(configFile),'');
@@ -78,12 +76,13 @@ else {
   configFile += '.json';
 }
 let config = remoteConfig ? { defaults: {} } : yaml.parse(fs.readFileSync(configFile,'utf8'), {prettyErrors: true});
-let defName = argv._[1] || path.resolve(__dirname,'defs/petstore3.json');
+let defName = argv._[1] || path.resolve('defs/petstore3.json');
 
 let finish = remoteConfig ? finishRemote : finishLocal;
 
 config.outputDir = argv.output;
 config.templateDir = argv.templates;
+
 
 if (config.generator) {
     let generator_path = path.resolve(configPath, config.generator);
@@ -115,7 +114,7 @@ function finishLocal(err,result) {
 function finishRemote(err,result) {
    configName = configName.split(':').pop();
    if (argv.verbose) console.log('Making/cleaning output directories');
-   mkdirp(path.join(config.outputDir,configName),function(){
+   mkdirp(path.join(config.outputDir,configName), function(){
        rimraf(path.join(config.outputDir,configName)+'/*',function(){
            if (argv.zip) {
               fs.writeFileSync(path.join(config.outputDir,configName,configName+'.zip'),result);

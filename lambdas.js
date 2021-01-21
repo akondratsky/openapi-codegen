@@ -1,7 +1,7 @@
 'use strict';
 
-const Hogan = require('hogan.js');
-const Case = require('case');
+import Hogan from 'hogan.js';
+import Case from 'case';
 
 /**
  * Converts text in a fragment to lowercase.
@@ -126,7 +126,7 @@ function maybeEscapeReservedWord(generator, text) {
 }
 
 
-module.exports = {
+export default {
     lowercase: lowerCase,
     uppercase: upperCase,
     snakecase: snakeCase,

@@ -1,8 +1,5 @@
-// @ts-check
-'use strict';
-
-const fetch = require('node-fetch');
-const util = require('util');
+import fetch from 'node-fetch';
+import util from 'util';
 
 function getServer(prefix) {
     if (prefix === 'og') {
@@ -74,7 +71,7 @@ async function list(prefix, filter) {
     return 1;
 }
 
-module.exports = {
+export default {
     main,
     list
 };
