@@ -1,3 +1,16 @@
+import yaml from 'yaml';
+import util from 'util';
+import { dereference as deref } from 'reftools/lib/dereference.js';
+import stools from 'swagger-tools';
+import { validateInner as validator } from 'oas-validator';
+import url from 'url';
+import { walkSchema as walkSchema } from 'oas-schema-walker';
+import Case from 'case';
+import safeJson from 'fast-safe-stringify';
+import { getDefaultState as wsGetState } from 'oas-schema-walker';
+
+import downconverter from '../../../lib/orange/downconvert.js';
+
 import {
   getBase,
   getPrime,
@@ -10,71 +23,42 @@ import {
 import { schemaProperties } from '../constants.js';
 import { setTypeMap, setReserved, reserved, typeMap, reservedWords, typeMaps } from '../maps.js';
 
-import downconverter from '../../../lib/orange/downconvert.js';
-import yaml from 'yaml';
-import util from 'util';
-import { dereference as deref } from 'reftools/lib/dereference.js';
-import stools from 'swagger-tools';
-import { validateInner as validator } from 'oas-validator';
-import url from 'url';
-import { walkSchema as walkSchema } from 'oas-schema-walker';
-import Case from 'case';
-import safeJson from 'fast-safe-stringify';
-import { getDefaultState as wsGetState } from 'oas-schema-walker';
 
-
+/**
+ * 
+ * @param {object} api - just parsed yaml
+ * @param {object} defaults - defaults from config
+ * @param {function} callback
+ */
 export const transform = (api, defaults, callback) => {
-  const base = getBase(); // defaults which are hard-coded
-
   const lang = (defaults.language || '').toLowerCase();
   if (typeMaps[lang]) setTypeMap(typeMaps[lang]);
   if (reservedWords[lang]) setReserved(reservedWords[lang]);
-
-  const prime = getPrime(api, defaults); // defaults which depend in some way on the api definition
-  let obj = Object.assign({}, base, prime, defaults);
+  
+  const base = getBase(); // default options which are hard-coded
+  const prime = getPrime(api, defaults); // options which depend in some way on the api definition
+  let configuration = Object.assign({}, base, prime, defaults);
 
   if (defaults.swagger) {
-    obj.swagger = defaults.swagger;
-  }
-  else {
+    configuration.swagger = defaults.swagger;
+  } else {
     const container = {};
     container.spec = api;
     container.source = defaults.source;
     const conv = new downconverter(container);
-    obj.swagger = conv.convert();
+    configuration.swagger = conv.convert();
   }
 
-  obj['swagger-yaml'] = yaml.stringify(obj.swagger); // set to original if converted v2.0
-  obj['swagger-json'] = JSON.stringify(obj.swagger, null, 2); // set to original if converted 2.0
-  obj['openapi-yaml'] = yaml.stringify(api);
-  obj['openapi-json'] = JSON.stringify(api, null, 2);
+  configuration['swagger-yaml'] = yaml.stringify(configuration.swagger); // set to original if converted v2.0
+  configuration['swagger-json'] = JSON.stringify(configuration.swagger, null, 2); // set to original if converted 2.0
+  configuration['openapi-yaml'] = yaml.stringify(api);
+  configuration['openapi-json'] = JSON.stringify(api, null, 2);
 
   // openapi3 extensions
-  obj.openapi = {};
-  obj.openapi.operationCounter = 1;
-  obj.openapi.version = api.openapi;
-  obj.openapi.servers = api.servers;
-
-  // helper functions (seen in erlang-client)
-  obj.qsEncode = function() {
-    return function(template){
-      console.warn(util.inspect(template));
-      console.warn(util.inspect(this));
-    };
-  };
-  obj.this = function() {
-    console.warn('this called');
-    return encodeURIComponent(this.paramName);
-  };
-  obj.length = function() {
-    // it's already assigned and it seems cannot be changed
-    // arrayMode = 'length';
-    return true;
-  };
-  obj.capitalize = function() {
-    //? seen in akka-scala
-    return true;
-  };
+  configuration.openapi = {};
+  configuration.openapi.operationCounter = 1;
+  configuration.openapi.version = api.openapi;
+  configuration.openapi.servers = api.servers;
 
   const allSecurity = [];
   if (api.components && api.components.securitySchemes) {
@@ -85,13 +69,13 @@ export const transform = (api, defaults, callback) => {
     }
   }
   const authData = getAuthData(allSecurity, api);
-  obj = Object.assign(obj, authData);
+  configuration = Object.assign(configuration, authData);
 
-  api = deref(api, api, {$ref:'x-oldref'});
+  api = deref(api, api, { $ref:'x-oldref' });
 
-  obj.messages = [];
+  configuration.messages = [];
   const message = {};
-  const vOptions = {anchors:true, lint:defaults.lint};
+  const vOptions = { anchors:true, lint:defaults.lint };
   if (defaults.stools && defaults.swagger) {
     stools.specs.v2_0.validate(defaults.swagger, function(err, result){
       if (err) console.error(util.inspect(err));
@@ -102,7 +86,7 @@ export const transform = (api, defaults, callback) => {
           message.elementType = 'Path';
           message.message = e.message;
           message.elementId = e.path.join('/');
-          obj.messages.push(message);
+          configuration.messages.push(message);
           if (defaults.verbose) console.log(message);
         }
         for (const w of result.warnings) {
@@ -111,20 +95,19 @@ export const transform = (api, defaults, callback) => {
           message.elementType = 'Path';
           message.message = w.message;
           message.elementId = w.path.join('/');
-          obj.messages.push(message);
+          configuration.messages.push(message);
           if (defaults.verbose) console.log(message);
         }
       }
     });
-  }
-  else {
+  } else {
     validator(api, vOptions)
       .then(() => {
         message.level = 'Valid';
         message.elementType = 'Context';
         message.elementId = 'None';
         message.message = 'No validation errors detected';
-        obj.messages.push(message);
+        configuration.messages.push(message);
         if (defaults.verbose) console.log(message);
       })
       .catch(ex => {
@@ -132,31 +115,31 @@ export const transform = (api, defaults, callback) => {
         message.elementType = 'Context';
         message.elementId = vOptions.context.pop();
         message.message = ex.message;
-        obj.messages.push(message);
+        configuration.messages.push(message);
         console.error(message);
       });
   }
   if (api.servers && api.servers.length) {
     const u = api.servers[0].url;
     const up = url.parse(u);
-    obj.host = up.host;
-    obj.basePath = up.path;
-    obj.basePathWithoutHost = up.path;
+    configuration.host = up.host;
+    configuration.basePath = up.path;
+    configuration.basePathWithoutHost = up.path;
   }
 
-  obj.consumes = [];
-  obj.produces = [];
+  configuration.consumes = [];
+  configuration.produces = [];
 
-  obj.apiInfo = {};
-  obj.apiInfo.apis = convertToApis(api, obj, defaults);
-  obj.apiInfo.paths = convertToPaths(api, obj, defaults);
+  configuration.apiInfo = {};
+  configuration.apiInfo.apis = convertToApis(api, configuration, defaults);
+  configuration.apiInfo.paths = convertToPaths(api, configuration, defaults);
 
-  obj.produces = convertArray(obj.produces);
-  obj.consumes = convertArray(obj.consumes);
+  configuration.produces = convertArray(configuration.produces);
+  configuration.consumes = convertArray(configuration.consumes);
 
-  if (defaults.debug) obj.debugOperations = JSON.stringify(obj, null, 2);
+  if (defaults.debug) configuration.debugOperations = JSON.stringify(configuration, null, 2);
 
-  obj.models = [];
+  configuration.models = [];
   if (api.components) {
     for (const s in api.components.schemas) {
       const schema = api.components.schemas[s];
@@ -164,7 +147,7 @@ export const transform = (api, defaults, callback) => {
         const container = {};
         const model = {};
         model.name = s;
-        if (obj.modelNaming === 'snake_case') {
+        if (configuration.modelNaming === 'snake_case') {
           model.name = Case.snake(model.name);
         }
         model.classname = model.name;
@@ -172,7 +155,7 @@ export const transform = (api, defaults, callback) => {
         model.modelJson = safeJson(schema, null, 2);
         model.title = schema.title;
         model.unescapedDescription = schema.description;
-        model.classFilename = obj.classPrefix + model.name;
+        model.classFilename = configuration.classPrefix + model.name;
         model.modelPackage = model.name;
         model.isEnum = !!schema.enum;
         model.hasEnums = false;
@@ -189,12 +172,12 @@ export const transform = (api, defaults, callback) => {
             entry.baseName = entry.name.toLowerCase();
           }
 
-          if (obj.variableNamingConvention === 'original') {
-            if (obj.modelPropertyNaming === 'snake_case') {
+          if (configuration.variableNamingConvention === 'original') {
+            if (configuration.modelPropertyNaming === 'snake_case') {
               entry.name = Case.snake(entry.name);
             }
           } else {
-            if (obj.variableNamingConvention === 'snake_case') {
+            if (configuration.variableNamingConvention === 'snake_case') {
               entry.baseName = entry.name;
               entry.name = Case.snake(entry.name);
             }
@@ -261,29 +244,29 @@ export const transform = (api, defaults, callback) => {
         model.vars = convertArray(model.vars);
         container.model = model;
         container.importPath = model.name;
-        obj.models.push(container);
+        configuration.models.push(container);
       }
     }
   }
 
-  if (obj.models.length === 0) {
-    obj.models = { isEmpty: true };
+  if (configuration.models.length === 0) {
+    configuration.models = { isEmpty: true };
   }
   else {
-    Object.defineProperty(obj.models, 'isEmpty', {
+    Object.defineProperty(configuration.models, 'isEmpty', {
       enumerable: true,
       value: false
     });
   }
 
-  obj.orderedModels = {};
-  Object.keys(obj.models).sort().forEach(function(key) {
-    obj.orderedModels[key] = obj.models[key];
+  configuration.orderedModels = {};
+  Object.keys(configuration.models).sort().forEach(function(key) {
+    configuration.orderedModels[key] = configuration.models[key];
   });
 
-  if (defaults.debug) obj.debugModels = JSON.stringify(obj.models, null, 2);
+  if (defaults.debug) configuration.debugModels = JSON.stringify(configuration.models, null, 2);
 
-  if (callback) callback(null, obj);
-  return obj;
+  if (callback) callback(null, configuration);
+  return configuration;
 };
 

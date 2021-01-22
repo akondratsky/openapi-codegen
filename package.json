@@ -10,7 +10,7 @@
     "start": "node ./__tests__/codegen.js",
     "lint": "npx eslint *.js test/*.js lib/",
     "test": "npx mocha --delay",
-    "debug": "node --inspect-brk cg --verbose --flat --perApi --perPath --output D:\\git\\openapi-codegen\\__tests__\\codegen_generated csharp-dotnet2 D:\\git\\openapi-codegen\\__tests__\\api.yaml"
+    "debug": "node --inspect-brk cg --verbose --flat --perApi --perPath --output D:\\git\\openapi-codegen\\__tests__\\codegen_generated typescript-axios D:\\git\\openapi-codegen\\__tests__\\api.yaml"
   },
   "type": "module",
   "keywords": [

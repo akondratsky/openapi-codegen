@@ -64,8 +64,6 @@ function main(o, config, configName, callback) {
 
     debugger;
   
-    output(model);
-
     const subDir = (config.defaults.flat ? '' : configName);
 
     verbose && console.log('Making/cleaning output directories');

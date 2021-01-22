@@ -8,12 +8,12 @@ import { despatch } from './despatch.js';
 const finish = remoteConfig ? finishRemote : finishLocal;
 
 export const main = (s) => {
-  debugger;
   const o = yaml.parse(s, { prettyErrors: true });
   if (argv.verbose) console.log('Loaded definition ' + defName);
 
   if (o && o.openapi) {
     console.log('main() -> despatching');
+    debugger;
     despatch(o, config, configName, finish);
   }
   // else {

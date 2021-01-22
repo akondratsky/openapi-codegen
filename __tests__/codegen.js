@@ -24,7 +24,7 @@ const generateCommand = `node --inspect cg \
 --perApi \
 --perPath \
 --output ${here('codegen_generated')} \
-csharp-dotnet2 ${here('api.yaml')}
+typesciprt-axios ${here('api.yaml')}
 `;
 
 
