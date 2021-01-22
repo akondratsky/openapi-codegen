@@ -9,3 +9,4 @@ export * from './specificationExtensions.js';
 export * from './convertToApis.js';
 export * from './convertToPaths.js';
 export * from './getSchemaType.js';
+export * from './schemaWalker.js';

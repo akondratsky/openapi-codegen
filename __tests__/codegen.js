@@ -24,7 +24,7 @@ const generateCommand = `node --inspect cg \
 --perApi \
 --perPath \
 --output ${here('codegen_generated')} \
-typesciprt-axios ${here('api.yaml')}
+typescript-axios ${here('api.yaml')}
 `;
 
 
