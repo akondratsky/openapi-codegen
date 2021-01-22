@@ -4,9 +4,11 @@
     */
 {{/description}}
 export enum {{classname}} {
+{{#vars}}
 {{#allowableValues}}
 {{#enumVars}}
     {{{name}}}{{^-last}},{{/-last}}
 {{/enumVars}}
 {{/allowableValues}}
+{{/vars}}
 }

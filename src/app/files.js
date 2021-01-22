@@ -6,10 +6,10 @@ import fs from 'fs';
 import { argv } from './args.js';
 import { config, configName } from './configs.js';
 
-let zipFiles = {};
+const zipFiles = {};
 
 export const nop = (arg, callback) => {
-  if (callback) callback(null,true);
+  if (callback) callback(null, true);
   return true;
 };
 
@@ -23,23 +23,23 @@ export const finishLocal = () => {
     var zip = new admzip();
 
     // add files directly
-    for (let f in zipFiles) {
+    for (const f in zipFiles) {
       zip.addFile(f, new Buffer(zipFiles[f]), 'Created with OpenAPI-CodeGen');
     }
     // write everything to disk
-    zip.writeZip(path.join(config.outputDir, configName+'.zip'));
+    zip.writeZip(path.join(config.outputDir, configName + '.zip'));
   }
 };
 
-export const finishRemote = (err,result) => {
+export const finishRemote = (err, result) => {
   const name = configName.split(':').pop();
 
   if (argv.verbose) console.log('Making/cleaning output directories');
 
   mkdirp(path.join(config.outputDir, name), function(){
-    rimraf(path.join(config.outputDir, name)+'/*',function(){
+    rimraf(path.join(config.outputDir, name) + '/*', function(){
       if (argv.zip) {
-        fs.writeFileSync(path.join(config.outputDir, name, name+'.zip') ,result);
+        fs.writeFileSync(path.join(config.outputDir, name, name + '.zip'), result);
       }
       else {
         const zip = new admzip(result);
@@ -50,7 +50,7 @@ export const finishRemote = (err,result) => {
             console.log(zipEntry.entryName);
           });
         }
-        zip.extractAllTo(config.outputDir,true);
+        zip.extractAllTo(config.outputDir, true);
       }
     });
   });
